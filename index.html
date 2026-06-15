@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CloudShield is an interactive AWS Cloud Security Auditor web application that audits IAM policies, runs security scans, and guides AWS compliance.">
+  <title>CloudShield // AWS Cloud Security Auditor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+  <div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <svg class="brand-icon" viewBox="0 0 24 24" width="28" height="28">
+          <path fill="var(--color-primary)" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        <div class="brand-text">
+          <h1>CloudShield</h1>
+          <span>AWS Security Auditor</span>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-tab="dashboard" id="nav-dashboard">
+          <svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20">
+            <rect x="3" y="3" width="7" height="9" rx="1"/>
+            <rect x="14" y="3" width="7" height="5" rx="1"/>
+            <rect x="14" y="12" width="7" height="9" rx="1"/>
+            <rect x="3" y="16" width="7" height="5" rx="1"/>
+          </svg>
+          Dashboard
+        </button>
+        <button class="nav-btn" data-tab="analyzer" id="nav-analyzer">
+          <svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          IAM Policy Analyzer
+        </button>
+        <button class="nav-btn" data-tab="scanner" id="nav-scanner">
+          <svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          Scan Simulator
+        </button>
+        <button class="nav-btn" data-tab="compliance" id="nav-compliance">
+          <svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          CIS Checklist
+        </button>
+        <button class="nav-btn" data-tab="generator" id="nav-generator">
+          <svg class="nav-icon" viewBox="0 0 24 24" width="20" height="20">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            <circle cx="12" cy="12" r="3" fill="none" stroke="var(--color-primary)" stroke-width="2"/>
+          </svg>
+          Policy Generator
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="connection-status">
+          <span class="status-indicator online"></span>
+          <span>Simulation Engine Active</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- HEADER -->
+      <header class="main-header">
+        <div class="header-title-area">
+          <h2 id="current-view-title">Dashboard</h2>
+          <p id="current-view-desc">Security posture summary and analysis history</p>
+        </div>
+        <div class="header-actions">
+          <div class="aws-env-pill">
+            <span class="pill-label">AWS Environment</span>
+            <span class="pill-value">MOCK-PROD-9021</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- PANELS CONTAINER -->
+      <div class="panel-container">
+        
+        <!-- DASHBOARD PANEL -->
+        <section id="panel-dashboard" class="tab-panel active">
+          <!-- TOP ROW: CARDS -->
+          <div class="dashboard-grid">
+            
+            <!-- CARD 1: SECURITY GAUGE -->
+            <div class="card security-score-card">
+              <h3>Overall Security Rating</h3>
+              <div class="gauge-container">
+                <svg class="progress-ring" width="160" height="160">
+                  <circle class="progress-ring-bg" stroke="#161f2b" stroke-width="12" fill="transparent" r="70" cx="80" cy="80"/>
+                  <circle class="progress-ring-bar" stroke="var(--color-warning)" stroke-width="12" fill="transparent" r="70" cx="80" cy="80" stroke-dasharray="439.82" stroke-dashoffset="114.35" id="score-ring"/>
+                </svg>
+                <div class="gauge-value">
+                  <span class="score-percent" id="score-percent-val">74%</span>
+                  <span class="score-grade" id="score-grade-val">Grade B-</span>
+                </div>
+              </div>
+              <p class="score-text">Your security posture is average. Moderate exposures detected in IAM and S3 Storage.</p>
+            </div>
+
+            <!-- CARD 2: VULNERABILITY SPLIT -->
+            <div class="card stats-card">
+              <h3>Vulnerabilities Found</h3>
+              <div class="stats-summary-grid">
+                <div class="stat-box critical">
+                  <span class="stat-count" id="stat-crit-count">2</span>
+                  <span class="stat-label">Critical</span>
+                </div>
+                <div class="stat-box high">
+                  <span class="stat-count" id="stat-high-count">4</span>
+                  <span class="stat-label">High</span>
+                </div>
+                <div class="stat-box medium">
+                  <span class="stat-count" id="stat-med-count">7</span>
+                  <span class="stat-label">Medium</span>
+                </div>
+                <div class="stat-box low">
+                  <span class="stat-count" id="stat-low-count">11</span>
+                  <span class="stat-label">Low</span>
+                </div>
+              </div>
+              <div class="severity-progress">
+                <div class="severity-segment crit" style="width: 8%"></div>
+                <div class="severity-segment high" style="width: 17%"></div>
+                <div class="severity-segment med" style="width: 29%"></div>
+                <div class="severity-segment low" style="width: 46%"></div>
+              </div>
+            </div>
+
+            <!-- CARD 3: COMPLIANCE GAUGES -->
+            <div class="card compliance-card">
+              <h3>Compliance Index</h3>
+              <div class="compliance-bars">
+                <div class="comp-bar-item">
+                  <div class="comp-label">
+                    <span>CIS AWS Foundations</span>
+                    <span id="comp-cis-val">68%</span>
+                  </div>
+                  <div class="comp-track">
+                    <div class="comp-fill warning" style="width: 68%" id="comp-cis-fill"></div>
+                  </div>
+                </div>
+                <div class="comp-bar-item">
+                  <div class="comp-label">
+                    <span>SOC 2 Type II (Security)</span>
+                    <span id="comp-soc-val">82%</span>
+                  </div>
+                  <div class="comp-track">
+                    <div class="comp-fill success" style="width: 82%" id="comp-soc-fill"></div>
+                  </div>
+                </div>
+                <div class="comp-bar-item">
+                  <div class="comp-label">
+                    <span>HIPAA Security Rules</span>
+                    <span id="comp-hipaa-val">50%</span>
+                  </div>
+                  <div class="comp-track">
+                    <div class="comp-fill danger" style="width: 50%" id="comp-hipaa-fill"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOTTOM ROW: SPLIT ACTION -->
+          <div class="dashboard-split">
+            <!-- RECENT AUDITS -->
+            <div class="card split-left">
+              <h3>Active Remediation Checklist</h3>
+              <ul class="remediation-list">
+                <li class="remediation-item critical-item">
+                  <span class="badge danger">Critical</span>
+                  <div class="item-body">
+                    <h4>S3 Bucket Public Read Access</h4>
+                    <p>Bucket: <code>prod-billing-reports</code> allows public anonymous reads.</p>
+                  </div>
+                  <button class="action-btn-small" onclick="switchToTab('analyzer')">Resolve</button>
+                </li>
+                <li class="remediation-item high-item">
+                  <span class="badge warning">High</span>
+                  <div class="item-body">
+                    <h4>Administrator Access Wildcard Policy</h4>
+                    <p>IAM Policy: <code>custom-admin-helper</code> grants <code>*:*</code> on <code>*</code>.</p>
+                  </div>
+                  <button class="action-btn-small" onclick="switchToTab('analyzer')">Resolve</button>
+                </li>
+                <li class="remediation-item medium-item">
+                  <span class="badge info">Medium</span>
+                  <div class="item-body">
+                    <h4>KMS Key Without Rotation</h4>
+                    <p>CMK: <code>arn:aws:kms:us-east-1:1234:key/a8f-...</code> rotation disabled.</p>
+                  </div>
+                  <button class="action-btn-small" onclick="switchToTab('compliance')">Learn</button>
+                </li>
+              </ul>
+            </div>
+
+            <!-- SECURITY OVERVIEW / QUICK ACCESS -->
+            <div class="card split-right">
+              <h3>Auditing Activity Guide</h3>
+              <div class="guide-steps">
+                <div class="guide-step">
+                  <div class="step-num">1</div>
+                  <div class="step-content">
+                    <h4>Paste & Inspect IAM Policies</h4>
+                    <p>Use the <strong>IAM Policy Analyzer</strong> to inspect IAM JSON structures for wildcard actions or public exposures.</p>
+                  </div>
+                </div>
+                <div class="guide-step">
+                  <div class="step-num">2</div>
+                  <div class="step-content">
+                    <h4>Run a Full Infrastructure Scan</h4>
+                    <p>Trigger the <strong>Scan Simulator</strong> to watch real-time auditing scripts query mock cloud databases.</p>
+                  </div>
+                </div>
+                <div class="guide-step">
+                  <div class="step-num">3</div>
+                  <div class="step-content">
+                    <h4>Generate Secure IAM Templates</h4>
+                    <p>Construct secure-by-default JSON policies using our graphical form builder in the <strong>Policy Generator</strong>.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- POLICY ANALYZER PANEL -->
+        <section id="panel-analyzer" class="tab-panel">
+          <div class="analyzer-layout">
+            <!-- INPUT SIDE -->
+            <div class="card editor-card">
+              <div class="editor-header">
+                <h3>JSON Policy Document</h3>
+                <div class="editor-controls">
+                  <select id="policy-template-select" class="dropdown-select">
+                    <option value="">-- Load a Sample Policy --</option>
+                    <option value="s3-public">Vulnerable S3 Public GetObject</option>
+                    <option value="iam-wildcard">Overprivileged Admin (Wildcard Action)</option>
+                    <option value="secgroup-open">Insecure Security Group (Open SSH/RDP)</option>
+                    <option value="kms-safe">Secure KMS Multi-Region Key Access</option>
+                  </select>
+                </div>
+              </div>
+              <div class="code-editor-container">
+                <div class="line-numbers" id="editor-line-numbers">
+                  <span>1</span>
+                </div>
+                <textarea id="policy-textarea" placeholder="Paste your AWS IAM, S3 Bucket Policy, or Security Group JSON here..." spellcheck="false"></textarea>
+              </div>
+              <div class="editor-footer">
+                <button id="clear-policy-btn" class="btn btn-secondary">Clear</button>
+                <button id="analyze-policy-btn" class="btn btn-primary">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  Analyze Config
+                </button>
+              </div>
+            </div>
+
+            <!-- RESULTS SIDE -->
+            <div class="card results-card">
+              <h3>Analysis Results</h3>
+              
+              <!-- Placeholder State -->
+              <div class="results-placeholder" id="results-placeholder">
+                <svg viewBox="0 0 24 24" width="48" height="48" stroke="var(--color-muted)" stroke-width="1" fill="none">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <circle cx="10" cy="13" r="2"/>
+                  <line x1="12" y1="15" x2="16" y2="19"/>
+                </svg>
+                <p>Paste a JSON policy template or create your own, then click "Analyze Config" to inspect security issues.</p>
+              </div>
+
+              <!-- Real Results Content (Hidden by default) -->
+              <div class="results-content hidden" id="results-content-area">
+                <div class="results-header-summary">
+                  <div class="health-gauge">
+                    <span class="health-label">Config Health</span>
+                    <span class="health-val text-warning" id="results-health-val">60%</span>
+                  </div>
+                  <div class="findings-summary">
+                    <span class="finding-pill critical" id="pill-crit">0 Critical</span>
+                    <span class="finding-pill high" id="pill-high">0 High</span>
+                    <span class="finding-pill medium" id="pill-med">0 Med</span>
+                  </div>
+                </div>
+
+                <div class="findings-list" id="findings-list-container">
+                  <!-- Dynamic finding entries go here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SCAN SIMULATOR PANEL -->
+        <section id="panel-scanner" class="tab-panel">
+          <div class="scanner-layout">
+            <!-- OPTIONS SIDE -->
+            <div class="card scanner-config-card">
+              <h3>Scanner Configuration</h3>
+              
+              <div class="form-group">
+                <label class="form-label">Services to Audit</label>
+                <div class="checkbox-grid">
+                  <label class="checkbox-container">
+                    <input type="checkbox" checked id="scan-iam">
+                    <span class="checkbox-checkmark"></span>
+                    IAM Configuration
+                  </label>
+                  <label class="checkbox-container">
+                    <input type="checkbox" checked id="scan-s3">
+                    <span class="checkbox-checkmark"></span>
+                    S3 Storage buckets
+                  </label>
+                  <label class="checkbox-container">
+                    <input type="checkbox" checked id="scan-network">
+                    <span class="checkbox-checkmark"></span>
+                    VPC Security Groups
+                  </label>
+                  <label class="checkbox-container">
+                    <input type="checkbox" id="scan-kms">
+                    <span class="checkbox-checkmark"></span>
+                    KMS Encryption Keys
+                  </label>
+                  <label class="checkbox-container">
+                    <input type="checkbox" id="scan-cloudtrail">
+                    <span class="checkbox-checkmark"></span>
+                    CloudTrail Logs
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Compliance Baseline</label>
+                <div class="radio-group">
+                  <label class="radio-container">
+                    <input type="radio" name="compliance-baseline" value="cis" checked>
+                    <span class="radio-checkmark"></span>
+                    CIS AWS Foundations Benchmark v1.4.0
+                  </label>
+                  <label class="radio-container">
+                    <input type="radio" name="compliance-baseline" value="soc2">
+                    <span class="radio-checkmark"></span>
+                    SOC 2 Type II (Trust Services Criteria)
+                  </label>
+                  <label class="radio-container">
+                    <input type="radio" name="compliance-baseline" value="hipaa">
+                    <span class="radio-checkmark"></span>
+                    HIPAA 164.312 (Security standards)
+                  </label>
+                </div>
+              </div>
+
+              <button class="btn btn-primary btn-block" id="start-scan-btn">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                Launch Security Scan
+              </button>
+            </div>
+
+            <!-- SHELL SIDE -->
+            <div class="card shell-card">
+              <div class="shell-header">
+                <div class="shell-dot red"></div>
+                <div class="shell-dot yellow"></div>
+                <div class="shell-dot green"></div>
+                <div class="shell-title">cloudshield-audit-agent (~/scan-console)</div>
+              </div>
+              <div class="shell-terminal" id="terminal-console">
+                <div class="terminal-line system-line">CloudShield Security Auditor Client - v2.4.1</div>
+                <div class="terminal-line system-line">Type 'help' or select configurations and press "Launch Security Scan" above.</div>
+                <div class="terminal-line"><span class="terminal-prompt">cloudshield-agent$</span> <span class="cursor"></span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DYNAMIC SCAN RESULTS -->
+          <div class="card scan-summary-results hidden" id="scan-summary-container">
+            <div class="scan-summary-header">
+              <h3>Scan Results Summary</h3>
+              <span class="scan-timestamp" id="scan-time">Completed: Just now</span>
+            </div>
+            
+            <div class="scan-stats-grid">
+              <div class="scan-stat-card">
+                <span class="scan-stat-title">Passed Checks</span>
+                <span class="scan-stat-value text-success" id="scan-pass-val">0</span>
+              </div>
+              <div class="scan-stat-card">
+                <span class="scan-stat-title">Failed Checks</span>
+                <span class="scan-stat-value text-danger" id="scan-fail-val">0</span>
+              </div>
+              <div class="scan-stat-card">
+                <span class="scan-stat-title">Uncertain/Manual Checks</span>
+                <span class="scan-stat-value text-warning" id="scan-warn-val">0</span>
+              </div>
+              <div class="scan-stat-card">
+                <span class="scan-stat-title">Compliance Score</span>
+                <span class="scan-stat-value text-primary" id="scan-score-val">0%</span>
+              </div>
+            </div>
+
+            <div class="scan-findings-groups" id="scan-group-findings">
+              <!-- Dynamically structured components go here -->
+            </div>
+          </div>
+        </section>
+
+        <!-- CIS COMPLIANCE CHECKLIST PANEL -->
+        <section id="panel-compliance" class="tab-panel">
+          <div class="compliance-layout">
+            <div class="card checklist-card">
+              <div class="checklist-header">
+                <h3>CIS AWS Foundations Benchmark Controls</h3>
+                <div class="checklist-filters">
+                  <button class="filter-chip active" data-filter="all">All</button>
+                  <button class="filter-chip" data-filter="fail">Failing Only</button>
+                  <button class="filter-chip" data-filter="pass">Passing Only</button>
+                </div>
+              </div>
+
+              <div class="checklist-accordion" id="compliance-accordion">
+                <!-- Section 1: IAM -->
+                <div class="accordion-item expanded">
+                  <div class="accordion-title">
+                    <div class="accordion-title-left">
+                      <span class="accordion-number">1.0</span>
+                      <h4>Identity and Access Management (IAM)</h4>
+                    </div>
+                    <span class="accordion-summary text-warning">4/7 Compliant</span>
+                  </div>
+                  <div class="accordion-content">
+                    <div class="checklist-item checked-pass" data-status="pass">
+                      <span class="checklist-bullet"></span>
+                      <div class="checklist-info">
+                        <h5>1.1 Avoid the use of the "root" account</h5>
+                        <p>Ensure no API calls are being executed under the AWS Root account credentials.</p>
+                      </div>
+                      <span class="status-badge pass">Compliant</span>
+                    </div>
+                    <div class="checklist-item checked-fail" data-status="fail">
+                      <span class="checklist-bullet"></span>
+                      <div class="checklist-info">
+                        <h5>1.2 Ensure MFA is enabled for all IAM users that have a console password</h5>
+                        <p>Security audit found 3 administrators and 1 operator account with Console password access lacking MFA.</p>
+                      </div>
+                      <span class="status-badge fail">Failed</span>
+                    </div>
+                    <div class="checklist-item checked-fail" data-status="fail">
+                      <span class="checklist-bullet"></span>
+                      <div class="checklist-info">
+                        <h5>1.16 Ensure IAM policies are attached only to groups or roles</h5>
+                        <p>Found 2 inline policies attached directly to the IAM user <code>deployer-ci</code>.</p>
+                      </div>
+                      <span class="status-badge fail">Failed</span>
+                    </div>
+                    <div class="checklist-item checked-pass" data-status="pass">
+                      <span class="checklist-bullet"></span>
+                      <div class="checklist-info">
+                        <h5>1.22 Ensure IAM policies do not allow broad '*' administrative privileges</h5>
+                        <p>Found policies containing wildcard resource grants for administrative APIs.</p>
+                      </div>
+                      <span class="status-badge pass">Compliant</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Section 2: Storage & S3 -->
+                <div class="accordion-item">
+                  <div class="accordion-title">
+                    <div class="accordion-title-left">
+                      <span class="accordion-number">2.0</span>
+                      <h4>Storage & S3 Services</h4>
+                    </div>
+                    <span class="accordion-summary text-danger">1/3 Compliant</span>
+                  </div>
+                  <div class="accordion-content">
+                    <div class="checklist-item checked-fail" data-status="fail">
+                      <span class="checklist-bullet"></span>
+                      <div class="checklist-info">
+                        <h5>2.1 Ensure S3 Buckets do not allow public read permission</h5>
+                        <p>Anonymous read access has been granted to bucket <code>prod-billing-reports</code>.</p>
+                      </div>
+                      <span class="status-badge fail">Failed</span>
+                    </div>
+                    <div class="checklist-item checked-fail" data-status="fail">
+                      <span class="checklist-bullet"></span>
+                      <div class="checklist-info">
+                        <h5>2.2 Ensure S3 Buckets have Default Encryption enabled</h5>
+                        <p>S3 Buckets <code>staging-logs</code> and <code>dev-assets</code> are currently unencrypted at rest.</p>
+                      </div>
+                      <span class="status-badge fail">Failed</span>
+                    </div>
+                    <div class="checklist-item checked-pass" data-status="pass">
+                      <span class="checklist-bullet"></span>
+                      <div class="checklist-info">
+                        <h5>2.3 Ensure S3 Buckets block public access (S3 Block Public Access)</h5>
+                        <p>Global block public access setting is enabled on 12 out of 13 S3 Buckets.</p>
+                      </div>
+                      <span class="status-badge pass">Compliant</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Section 3: Logging & Monitoring -->
+                <div class="accordion-item">
+                  <div class="accordion-title">
+                    <div class="accordion-title-left">
+                      <span class="accordion-number">3.0</span>
+                      <h4>Logging & Monitoring</h4>
+                    </div>
+                    <span class="accordion-summary text-success">3/3 Compliant</span>
+                  </div>
+                  <div class="accordion-content">
+                    <div class="checklist-item checked-pass" data-status="pass">
+                      <span class="checklist-bullet"></span>
+                      <div class="checklist-info">
+                        <h5>3.1 Ensure CloudTrail is enabled in all regions</h5>
+                        <p>Multi-region CloudTrail is configured and sending logging streams to a secure bucket.</p>
+                      </div>
+                      <span class="status-badge pass">Compliant</span>
+                    </div>
+                    <div class="checklist-item checked-pass" data-status="pass">
+                      <span class="checklist-bullet"></span>
+                      <div class="checklist-info">
+                        <h5>3.2 Ensure CloudTrail log file validation is enabled</h5>
+                        <p>Digest file validation is configured across all trails to prevent log tampering.</p>
+                      </div>
+                      <span class="status-badge pass">Compliant</span>
+                    </div>
+                    <div class="checklist-item checked-pass" data-status="pass">
+                      <span class="checklist-bullet"></span>
+                      <div class="checklist-info">
+                        <h5>3.3 Ensure KMS key rotation is enabled for Customer Managed Keys (CMK)</h5>
+                        <p>All Customer Managed Keys (CMKs) have dynamic annual rotation enabled.</p>
+                      </div>
+                      <span class="status-badge pass">Compliant</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Section 4: Networking -->
+                <div class="accordion-item">
+                  <div class="accordion-title">
+                    <div class="accordion-title-left">
+                      <span class="accordion-number">4.0</span>
+                      <h4>Networking & VPC</h4>
+                    </div>
+                    <span class="accordion-summary text-warning">2/3 Compliant</span>
+                  </div>
+                  <div class="accordion-content">
+                    <div class="checklist-item checked-fail" data-status="fail">
+                      <span class="checklist-bullet"></span>
+                      <div class="checklist-info">
+                        <h5>4.1 Ensure no security groups allow ingress from 0.0.0.0/0 to port 22</h5>
+                        <p>VPC Security Group <code>sg-01f2385b (ssh-access)</code> permits inbound SSH from anywhere.</p>
+                      </div>
+                      <span class="status-badge fail">Failed</span>
+                    </div>
+                    <div class="checklist-item checked-pass" data-status="pass">
+                      <span class="checklist-bullet"></span>
+                      <div class="checklist-info">
+                        <h5>4.2 Ensure no security groups allow ingress from 0.0.0.0/0 to port 3389</h5>
+                        <p>No security groups allow ingress to Microsoft Remote Desktop (RDP) from the public internet.</p>
+                      </div>
+                      <span class="status-badge pass">Compliant</span>
+                    </div>
+                    <div class="checklist-item checked-pass" data-status="pass">
+                      <span class="checklist-bullet"></span>
+                      <div class="checklist-info">
+                        <h5>4.3 Ensure VPC flow logging is enabled in all VPCs</h5>
+                        <p>VPC Flow Logs are configured and publishing data streams to CloudWatch Logs.</p>
+                      </div>
+                      <span class="status-badge pass">Compliant</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- POLICY GENERATOR PANEL -->
+        <section id="panel-generator" class="tab-panel">
+          <div class="generator-layout">
+            <!-- INPUT FORM -->
+            <div class="card generator-form-card">
+              <h3>Policy Builder Fields</h3>
+              <form id="policy-gen-form" onsubmit="event.preventDefault();">
+                <div class="form-group">
+                  <label class="form-label" for="gen-policy-name">Policy Name</label>
+                  <input type="text" id="gen-policy-name" class="form-input" value="SecureAppAccessPolicy">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="gen-service">AWS Service</label>
+                  <select id="gen-service" class="dropdown-select btn-block">
+                    <option value="s3">Amazon S3 (Simple Storage Service)</option>
+                    <option value="kms">AWS KMS (Key Management Service)</option>
+                    <option value="dynamodb">Amazon DynamoDB (NoSQL Database)</option>
+                    <option value="sqs">Amazon SQS (Simple Queue Service)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Permission Level</label>
+                  <div class="radio-group horizontal-group">
+                    <label class="radio-container">
+                      <input type="radio" name="gen-action-level" value="read" checked>
+                      <span class="radio-checkmark"></span>
+                      Read-Only
+                    </label>
+                    <label class="radio-container">
+                      <input type="radio" name="gen-action-level" value="write">
+                      <span class="radio-checkmark"></span>
+                      Write-Only
+                    </label>
+                    <label class="radio-container">
+                      <input type="radio" name="gen-action-level" value="readwrite">
+                      <span class="radio-checkmark"></span>
+                      Read/Write
+                    </label>
+                    <label class="radio-container">
+                      <input type="radio" name="gen-action-level" value="admin">
+                      <span class="radio-checkmark"></span>
+                      Admin/Full
+                    </label>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="gen-resource">Target Resource ARN</label>
+                  <input type="text" id="gen-resource" class="form-input" value="arn:aws:s3:::my-secure-production-bucket">
+                  <small class="form-help">Provide a specific AWS ARN instead of a wildcard "*" to enforce Least Privilege.</small>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Additional Constraints</label>
+                  <div class="checkbox-list">
+                    <label class="checkbox-container">
+                      <input type="checkbox" id="gen-mfa" checked>
+                      <span class="checkbox-checkmark"></span>
+                      Require Multi-Factor Authentication (MFA)
+                    </label>
+                    <label class="checkbox-container">
+                      <input type="checkbox" id="gen-secure-transport" checked>
+                      <span class="checkbox-checkmark"></span>
+                      Enforce Secure Transport (HTTPS/SSL only)
+                    </label>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <!-- CODE OUTPUT -->
+            <div class="card generator-output-card">
+              <div class="output-header">
+                <h3>Generated Secure IAM Policy</h3>
+                <button class="btn btn-secondary btn-small" id="copy-gen-policy-btn">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                  </svg>
+                  Copy JSON
+                </button>
+              </div>
+              <div class="code-output-container">
+                <pre><code class="language-json" id="generated-json-code">...</code></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
